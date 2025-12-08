@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hal-app-mobile",
-    "slug": "hal-app-mobile",
+    "name": "Hal Knows A Guy",
+    "slug": "hal-knows-a-guy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,18 +13,37 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fourandahalfgiraffes.halapp",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Allow Hal to access your microphone to record hotline messages."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.fourandahalfgiraffes.halapp",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Hal to access your microphone to record hotline messages."
+        }
+      ]
+    ]
   }
 }
