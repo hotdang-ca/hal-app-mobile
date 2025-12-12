@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Dimensions, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -80,7 +80,7 @@ export const PodcastDetailScreen = () => {
         >
             {/* Header (Back button handled by Navigator, but we can add custom actions here) */}
 
-            <View style={styles.content}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.artworkContainer}>
                     {imageUrl ? (
                         <Image source={{ uri: imageUrl }} style={styles.artwork} />
@@ -94,7 +94,6 @@ export const PodcastDetailScreen = () => {
                 <View style={styles.infoContainer}>
                     <Text style={styles.title}>{podcast.title}</Text>
                     <Text style={styles.host}>{podcast.host}</Text>
-                    {/* Description can be a bit long, maybe truncate or hide in player view */}
                 </View>
 
                 <View style={styles.playerContainer}>
@@ -139,7 +138,7 @@ export const PodcastDetailScreen = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </View>
+            </ScrollView>
         </LinearGradient>
     );
 };
@@ -148,12 +147,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    content: {
-        flex: 1,
+    scrollContent: {
         padding: 24,
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingBottom: 60, // Space for navigation bar
+        paddingBottom: 60,
     },
     artworkContainer: {
         marginTop: 40,

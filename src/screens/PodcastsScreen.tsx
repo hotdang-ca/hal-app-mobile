@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Text } from 'react-native';
 import { theme } from '../theme/theme';
 import { Podcast } from '../types';
 import { PodcastCard } from '../components/PodcastCard';
@@ -46,21 +46,19 @@ export const PodcastsScreen = () => {
 
     return (
         <View style={styles.container}>
-            <FlatList
-                data={podcasts}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <PodcastCard podcast={item} onPress={handlePress} />
-                )}
-                contentContainerStyle={styles.list}
-                ListEmptyComponent={
+            <ScrollView contentContainerStyle={styles.list}>
+                {podcasts.length === 0 ? (
                     <View style={styles.center}>
                         <Text style={{ color: theme.colors.subText, marginTop: 40, textAlign: 'center' }}>
                             No podcasts yet. Stay tuned!
                         </Text>
                     </View>
-                }
-            />
+                ) : (
+                    podcasts.map(podcast => (
+                        <PodcastCard key={podcast.id} podcast={podcast} onPress={handlePress} />
+                    ))
+                )}
+            </ScrollView>
         </View>
     );
 };

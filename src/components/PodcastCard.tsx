@@ -17,7 +17,7 @@ export const PodcastCard = ({ podcast, onPress }: PodcastCardProps) => {
         <TouchableOpacity style={styles.card} onPress={() => onPress(podcast)}>
             <View style={styles.thumbnail}>
                 {podcast.imageUrl ? (
-                    <FadeInImage source={{ uri: getFullUrl(podcast.imageUrl)! }} style={{ width: '100%', height: '100%' }} />
+                    <FadeInImage source={{ uri: getFullUrl(podcast.imageUrl)! }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
                 ) : (
                     <Ionicons name="mic-circle" size={50} color={theme.colors.card} />
                 )}
@@ -48,9 +48,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        height: 120, // Fixed height per request
     },
     thumbnail: {
-        width: 100,
+        width: 120, // Square thumbnail
         height: '100%',
         backgroundColor: theme.colors.primary,
         justifyContent: 'center',
