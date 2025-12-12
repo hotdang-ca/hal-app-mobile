@@ -11,22 +11,25 @@ export interface Business {
 }
 
 export interface Article {
-    id: string;
+    id: number;
     title: string;
-    category: string;
-    publishedDate: string;
     summary: string;
     content: string; // Markdown
+    author: string;
+    imageUrl?: string;
+    createdAt: string;
+    category?: string; // Optional for now as API doesn't have it yet
 }
 
 export interface Podcast {
-    id: string;
+    id: number;
     title: string;
-    category: string;
-    publishedDate: string;
-    summary: string;
-    thumbnailUrl: string;
+    description: string;
+    host: string;
     audioUrl: string;
+    imageUrl?: string;
+    duration: string;
+    createdAt: string;
 }
 
 export interface Product {

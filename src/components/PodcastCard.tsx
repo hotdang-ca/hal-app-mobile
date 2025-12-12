@@ -4,6 +4,8 @@ import { theme } from '../theme/theme';
 import { Podcast } from '../types';
 import { Ionicons } from '@expo/vector-icons';
 import { FadeInImage } from './FadeInImage';
+import { API_URL } from '../constants';
+import { getFullUrl } from '../utils/url';
 
 interface PodcastCardProps {
     podcast: Podcast;
@@ -13,11 +15,18 @@ interface PodcastCardProps {
 export const PodcastCard = ({ podcast, onPress }: PodcastCardProps) => {
     return (
         <TouchableOpacity style={styles.card} onPress={() => onPress(podcast)}>
-            <FadeInImage source={{ uri: podcast.thumbnailUrl }} style={styles.thumbnail} />
+            <View style={styles.thumbnail}>
+                {podcast.imageUrl ? (
+                    <FadeInImage source={{ uri: getFullUrl(podcast.imageUrl)! }} style={{ width: '100%', height: '100%' }} />
+                ) : (
+                    <Ionicons name="mic-circle" size={50} color={theme.colors.card} />
+                )}
+            </View>
             <View style={styles.content}>
-                <Text style={styles.category}>{podcast.category} • {podcast.publishedDate}</Text>
+                <Text style={styles.category}>{new Date(podcast.createdAt).toLocaleDateString()}</Text>
                 <Text style={styles.title} numberOfLines={2}>{podcast.title}</Text>
-                <Text style={styles.summary} numberOfLines={2}>{podcast.summary}</Text>
+                <Text style={styles.summary} numberOfLines={2}>{podcast.description}</Text>
+                <Text style={styles.host}>Host: {podcast.host}</Text>
                 <View style={styles.playRow}>
                     <Ionicons name="play-circle" size={24} color={theme.colors.primary} />
                     <Text style={styles.playText}>Listen Now</Text>
@@ -43,7 +52,9 @@ const styles = StyleSheet.create({
     thumbnail: {
         width: 100,
         height: '100%',
-        backgroundColor: theme.colors.border,
+        backgroundColor: theme.colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     content: {
         flex: 1,
@@ -62,6 +73,10 @@ const styles = StyleSheet.create({
         ...theme.typography.body,
         fontSize: 12,
         color: theme.colors.subText,
+        marginBottom: theme.spacing.s,
+    },
+    host: {
+        ...theme.typography.caption,
         marginBottom: theme.spacing.s,
     },
     playRow: {
