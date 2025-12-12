@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
 import { theme } from '../theme/theme';
 import { Podcast } from '../types';
 import { PodcastCard } from '../components/PodcastCard';
@@ -19,7 +19,12 @@ export const PodcastsScreen = () => {
         try {
             const response = await fetch(`${API_URL}/podcasts`);
             const data = await response.json();
-            setPodcasts(data);
+            if (Array.isArray(data)) {
+                setPodcasts(data);
+            } else {
+                console.error("API returned non-array:", data);
+                setPodcasts([]);
+            }
         } catch (error) {
             console.error("Failed to fetch podcasts:", error);
         } finally {
@@ -43,11 +48,18 @@ export const PodcastsScreen = () => {
         <View style={styles.container}>
             <FlatList
                 data={podcasts}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <PodcastCard podcast={item} onPress={handlePress} />
                 )}
                 contentContainerStyle={styles.list}
+                ListEmptyComponent={
+                    <View style={styles.center}>
+                        <Text style={{ color: theme.colors.subText, marginTop: 40, textAlign: 'center' }}>
+                            No podcasts yet. Stay tuned!
+                        </Text>
+                    </View>
+                }
             />
         </View>
     );

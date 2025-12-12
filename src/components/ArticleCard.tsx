@@ -12,11 +12,12 @@ export const ArticleCard = ({ article, onPress }: ArticleCardProps) => {
     return (
         <TouchableOpacity style={styles.card} onPress={() => onPress(article)}>
             <View style={styles.header}>
-                <Text style={styles.category}>{article.category}</Text>
-                <Text style={styles.date}>{article.publishedDate}</Text>
+                {article.category && <Text style={styles.category}>{article.category}</Text>}
+                <Text style={styles.date}>{new Date(article.createdAt).toLocaleDateString()}</Text>
             </View>
             <Text style={styles.title}>{article.title}</Text>
             <Text style={styles.summary} numberOfLines={2}>{article.summary}</Text>
+            {article.author && <Text style={styles.author}>By {article.author}</Text>}
         </TouchableOpacity>
     );
 };
@@ -55,4 +56,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: theme.colors.subText,
     },
+    author: {
+        ...theme.typography.caption,
+        marginTop: theme.spacing.s,
+        fontStyle: 'italic',
+    }
 });

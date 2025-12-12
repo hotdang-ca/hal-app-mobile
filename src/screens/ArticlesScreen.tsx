@@ -21,8 +21,14 @@ export const ArticlesScreen = () => {
         try {
             const response = await fetch(`${API_URL}/articles`);
             const data = await response.json();
-            setArticles(data);
-            setFilteredArticles(data);
+            if (Array.isArray(data)) {
+                setArticles(data);
+                setFilteredArticles(data);
+            } else {
+                console.error("API returned non-array:", data);
+                setArticles([]);
+                setFilteredArticles([]);
+            }
         } catch (error) {
             console.error("Failed to fetch articles:", error);
         } finally {
@@ -44,7 +50,7 @@ export const ArticlesScreen = () => {
         }
     };
 
-    const categories = Array.from(new Set(articles.map(a => a.category)));
+    const categories = Array.from(new Set(articles.map(a => a.category).filter(Boolean) as string[]));
 
     if (loading) {
         return (
@@ -82,11 +88,18 @@ export const ArticlesScreen = () => {
 
             <FlatList
                 data={filteredArticles}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <ArticleCard article={item} onPress={handlePress} />
                 )}
                 contentContainerStyle={styles.list}
+                ListEmptyComponent={
+                    <View style={styles.center}>
+                        <Text style={{ color: theme.colors.subText, marginTop: 40, textAlign: 'center' }}>
+                            No articles found. Check back later!
+                        </Text>
+                    </View>
+                }
             />
         </View>
     );

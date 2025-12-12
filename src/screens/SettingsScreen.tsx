@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, Switch, Button, Alert, TextInput } from 'react-native';
 import { theme } from '../theme/theme';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
+import { useUser } from '../context/UserContext';
 
 export const SettingsScreen = () => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [pushToken, setPushToken] = useState<string | undefined>('');
+    const { userName, setUserName } = useUser();
+    const [nameInput, setNameInput] = useState(userName);
+
+    const handleSaveName = () => {
+        setUserName(nameInput);
+        Alert.alert("Saved", "Your default name has been updated.");
+    };
 
     const toggleSwitch = async (value: boolean) => {
         if (value) {
@@ -29,6 +37,22 @@ export const SettingsScreen = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Settings</Text>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Profile</Text>
+                <Text style={styles.label}>Default Name</Text>
+                <View style={styles.inputRow}>
+                    <TextInput
+                        style={styles.input}
+                        value={nameInput}
+                        onChangeText={setNameInput}
+                        placeholder="Enter your name"
+                        placeholderTextColor={theme.colors.subText}
+                    />
+                    <Button title="Save" onPress={handleSaveName} color={theme.colors.primary} />
+                </View>
+                <Text style={styles.hint}>This name will be used for Chat and Hotline submissions.</Text>
+            </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Preferences</Text>
@@ -111,5 +135,20 @@ const styles = StyleSheet.create({
     token: {
         ...theme.typography.caption,
         color: theme.colors.subText,
+    },
+    inputRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.s,
+        marginBottom: theme.spacing.s,
+    },
+    input: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.s,
+        padding: theme.spacing.s,
+        color: theme.colors.text,
+        backgroundColor: theme.colors.card,
     }
 });

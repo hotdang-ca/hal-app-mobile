@@ -1,50 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { theme } from '../theme/theme';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Message {
-    id: string;
-    text: string;
-    sender: 'user' | 'other';
-    timestamp: number;
-    user?: string;
-}
-
-const TOPIC = "What's the best hidden gem restaurant in town?";
-
-const INITIAL_MESSAGES: Message[] = [
-    { id: '1', text: 'Has anyone tried that new taco place on main?', sender: 'other', timestamp: Date.now() - 10000, user: 'Sarah' },
-    { id: '2', text: 'Yes! The al pastor is amazing.', sender: 'other', timestamp: Date.now() - 5000, user: 'Mike' },
-];
+import { useChat } from '../context/ChatContext';
+import { useUser } from '../context/UserContext';
+import { usePlayer } from '../context/PlayerContext';
+import { Timestamp } from 'firebase/firestore';
 
 export const ChatScreen = () => {
-    const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+    const { messages, sendMessage, isLoading, activeTopic, topicsMap } = useChat();
+    const { userId, userName } = useUser();
+    const { currentPodcast } = usePlayer();
     const [inputText, setInputText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
-    const sendMessage = () => {
-        if (!inputText.trim()) return;
+    // Auto-scroll to bottom logic
 
-        const newMessage: Message = {
-            id: Date.now().toString(),
-            text: inputText,
-            sender: 'user',
-            timestamp: Date.now(),
-        };
+    const handleSendMessage = async () => {
+        if (!inputText.trim() || !userId) return;
 
-        setMessages(prev => [...prev, newMessage]);
-        setInputText('');
+        const text = inputText;
+        setInputText(''); // Optimistic clear
+
+        await sendMessage([{
+            _id: Date.now().toString(), // Temp ID, will be replaced by Firestore
+            text: text,
+            createdAt: new Date(),
+            user: {
+                _id: userId,
+                name: userName, // Use context name
+            }
+        }]);
     };
 
-    // Auto-scroll to bottom
-    useEffect(() => {
-        setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-    }, [messages]);
-
-    const formatTime = (timestamp: number) => {
+    // Formatter
+    const formatTime = (date: Date | number | Timestamp) => {
+        if (!date) return '';
+        const timestamp = date instanceof Date ? date.getTime() : date instanceof Timestamp ? date.toDate().getTime() : date;
         const now = Date.now();
         const diff = now - timestamp;
         const minutes = Math.floor(diff / 60000);
@@ -56,59 +48,89 @@ export const ChatScreen = () => {
         return new Date(timestamp).toLocaleDateString();
     };
 
-    const renderItem = ({ item }: { item: Message }) => {
-        const isUser = item.sender === 'user';
+    const renderItem = ({ item }: { item: any }) => {
+        const isUser = item.user._id === userId;
+        const isDifferentTopic = activeTopic && item.topicId !== activeTopic.id;
+        const msgTopicTitle = item.topicId ? topicsMap[item.topicId] : null;
+
         return (
             <View style={[
                 styles.messageContainer,
                 isUser ? styles.userMessageContainer : styles.otherMessageContainer
             ]}>
-                {!isUser && <Text style={styles.senderName}>{item.user}</Text>}
+                {!isUser && <Text style={styles.senderName}>{item.user.name}</Text>}
+
+                {/* Topic Indicator for "Old" Topics */}
+                {isDifferentTopic && msgTopicTitle && (
+                    <TouchableOpacity
+                        onPress={() => Alert.alert("Topic", msgTopicTitle)}
+                        style={styles.topicIndicator}
+                    >
+                        <Text style={styles.topicIndicatorText} numberOfLines={1}>
+                            {msgTopicTitle}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
                 <View style={[
                     styles.bubble,
-                    isUser ? styles.userBubble : styles.otherBubble
+                    isUser ? styles.userBubble : styles.otherBubble,
+                    isDifferentTopic ? { opacity: 0.7 } : {} // Slightly fade old topics
                 ]}>
                     <Text style={[
                         styles.messageText,
                         isUser ? styles.userMessageText : styles.otherMessageText
                     ]}>{item.text}</Text>
                 </View>
-                <Text style={styles.timestamp}>{formatTime(item.timestamp)}</Text>
+                <Text style={styles.timestamp}>{formatTime(item.createdAt)}</Text>
             </View>
         );
     };
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, currentPodcast && { paddingBottom: 150 }]}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={90}
         >
-            <View style={styles.banner}>
-                <Text style={styles.bannerLabel}>TODAY'S TOPIC</Text>
-                <Text style={styles.bannerText}>{TOPIC}</Text>
-            </View>
+            {activeTopic && (
+                <View style={styles.banner}>
+                    <Text style={styles.bannerLabel}>TODAY'S TOPIC</Text>
+                    <Text style={styles.bannerText}>{activeTopic.title}</Text>
+                </View>
+            )}
 
-            <FlatList
-                ref={flatListRef}
-                data={messages}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContent}
-            />
+            {/* Show Loading or List */}
+            {isLoading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+            ) : (
+                <FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    renderItem={renderItem}
+                    keyExtractor={item => item._id.toString()}
+                    contentContainerStyle={styles.listContent}
+                    inverted={true} // Newest at bottom
+                />
+            )}
 
-            <View style={styles.inputContainer}>
+            <View
+                style={[styles.inputContainer, !activeTopic && { opacity: 0.5 }]}
+            >
                 <TextInput
                     style={styles.input}
                     value={inputText}
                     onChangeText={setInputText}
-                    placeholder="Join the conversation..."
+                    placeholder={activeTopic ? "Join the conversation..." : "Chat is currently paused"}
                     placeholderTextColor={theme.colors.subText}
+                    editable={!!activeTopic}
                 />
                 <TouchableOpacity
-                    onPress={sendMessage}
+                    onPress={handleSendMessage}
                     style={styles.sendButton}
-                    disabled={!inputText.trim()}
+                    disabled={!inputText.trim() || !activeTopic}
                     accessibilityLabel="Send Message"
                 >
                     <Ionicons name="send" size={24} color={inputText.trim() ? theme.colors.primary : theme.colors.disabled} />
@@ -122,6 +144,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     banner: {
         backgroundColor: theme.colors.secondary,
@@ -210,5 +237,18 @@ const styles = StyleSheet.create({
         fontSize: 10,
         marginTop: 2,
         alignSelf: 'flex-end',
+    },
+    topicIndicator: {
+        backgroundColor: theme.colors.border,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+        marginBottom: 2,
+        alignSelf: 'flex-start',
+        maxWidth: 150,
+    },
+    topicIndicatorText: {
+        fontSize: 10,
+        color: theme.colors.subText,
     }
 });

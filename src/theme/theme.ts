@@ -12,6 +12,7 @@ export const theme = {
         success: '#2ECC71',
         error: '#E74C3C',
         warning: '#F1C40F',
+        disabled: '#BDC3C7',
     },
     spacing: {
         xs: 4,

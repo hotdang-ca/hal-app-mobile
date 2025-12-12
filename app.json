@@ -16,7 +16,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.fourandahalfgiraffes.halapp",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Allow Hal to access your microphone to record hotline messages."
+        "UIBackgroundModes": [
+          "audio"
+        ],
+        "NSMicrophoneUsageDescription": "Allow Hal to access your microphone to record hotline messages.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -43,7 +47,13 @@
         {
           "microphonePermission": "Allow Hal to access your microphone to record hotline messages."
         }
-      ]
-    ]
+      ],
+      "expo-audio"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "81e43986-6ee8-4a4d-81f7-15bf3d441852"
+      }
+    }
   }
 }
